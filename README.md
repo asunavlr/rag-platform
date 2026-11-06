@@ -8,7 +8,7 @@ A multi-tenant Retrieval-Augmented Generation (RAG) API built with FastAPI. It i
 
 ```text
 Client
-  |  Bearer JWT + X-Organization-ID
+  |  Bearer API token + X-Organization-ID
   v
 FastAPI
   |-- Document ingestion -> text extraction -> chunking
@@ -67,7 +67,7 @@ Set `DATABASE_URL` to a PostgreSQL connection string. SQLite is supported for te
 
 ### Authentication
 
-Create an organization using `POST /v1/organizations`. The response includes a bearer token for local evaluation. Send it with every tenant-scoped request, together with `X-Organization-ID`.
+Create an organization using `POST /v1/organizations`. The response includes a bearer API token for local evaluation. Send it with every tenant-scoped request, together with `X-Organization-ID`.
 
 This bootstrap flow is intentionally simple for a portfolio demo. Replace it with a proper identity provider, user membership model, token rotation and authorization policies before production use.
 
