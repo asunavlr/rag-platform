@@ -1,5 +1,4 @@
 import io
-import uuid
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
@@ -141,7 +140,11 @@ async def query_knowledge_base(
     documents = {
         item.id: item for item in db.query(Document).filter_by(organization_id=organization.id).all()
     }
-    ranked = hybrid_rank(payload.question, chunks, documents, payload.top_k)
+    try:
+        query_vector = (await embed_texts([payload.question]))[0]
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Embedding provider failed: {exc}") from exc
+    ranked = hybrid_rank(payload.question, chunks, documents, payload.top_k, query_vector)
     answer, generation = await generate_answer(payload.question, ranked)
     citations = [
         Citation(
