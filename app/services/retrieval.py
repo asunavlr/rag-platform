@@ -21,21 +21,25 @@ def lexical_score(query: str, content: str) -> float:
     return sum(1 for term in terms if term in words) / len(terms)
 
 
-def hybrid_rank(query: str, chunks: list[Chunk], documents: dict[str, Document], top_k: int) -> list[dict]:
-    query_vector = local_embedding(query, len(chunks[0].embedding)) if chunks else []
-    semantic = sorted(chunks, key=lambda c: cosine_similarity(query_vector, c.embedding), reverse=True)
-    lexical = sorted(chunks, key=lambda c: lexical_score(query, c.content), reverse=True)
+def hybrid_rank(
+    query: str,
+    chunks: list[Chunk],
+    documents: dict[str, Document],
+    top_k: int,
+    query_vector: list[float] | None = None,
+) -> list[dict]:
+    if not chunks:
+        return []
+    vector = query_vector or local_embedding(query, len(chunks[0].embedding))
+    semantic = sorted(chunks, key=lambda c: cosine_similarity(vector, c.embedding), reverse=True)
+    lexical_order = sorted(chunks, key=lambda c: lexical_score(query, c.content), reverse=True)
     semantic_rank = {chunk.id: rank for rank, chunk in enumerate(semantic, 1)}
-    lexical_rank = {chunk.id: rank for rank, chunk in enumerate(lexical, 1)}
+    lexical_rank = {chunk.id: rank for rank, chunk in enumerate(lexical_order, 1)}
     fused = []
     for chunk in chunks:
         rrf = 1 / (60 + semantic_rank[chunk.id]) + 1 / (60 + lexical_rank[chunk.id])
-        semantic_score = cosine_similarity(query_vector, chunk.embedding)
-        lexical = lexical_score(query, chunk.content)
-        score = rrf * 1000 + max(semantic_score, 0) * 0.25 + lexical * 0.25
-        fused.append({
-            "chunk": chunk,
-            "document": documents[chunk.document_id],
-            "score": score,
-        })
+        semantic_score = cosine_similarity(vector, chunk.embedding)
+        term_score = lexical_score(query, chunk.content)
+        score = rrf * 1000 + max(semantic_score, 0) * 0.25 + term_score * 0.25
+        fused.append({"chunk": chunk, "document": documents[chunk.document_id], "score": score})
     return sorted(fused, key=lambda item: item["score"], reverse=True)[:top_k]
