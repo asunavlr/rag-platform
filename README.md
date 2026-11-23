@@ -2,7 +2,7 @@
 
 A multi-tenant Retrieval-Augmented Generation (RAG) API built with FastAPI. It ingests documents, chunks and embeds their content, performs hybrid retrieval (semantic + lexical), reranks candidates, and generates grounded answers with source citations.
 
-> **Project status:** portfolio MVP. The default embedding provider is deterministic and dependency-free for local development; configure an OpenAI-compatible API for production-quality embeddings and generation. Vectors are stored as JSON and ranked in the application for portability. For high-volume workloads, move vector operations to PostgreSQL + pgvector.
+**Project status:** production-oriented portfolio reference implementation. PostgreSQL uses pgvector for approximate-nearest-neighbour candidate retrieval; SQLite remains available for fast local tests. The default feature-hashing embedding is deterministic and useful only as a zero-cost smoke-test baseline. Configure a semantic embedding provider and a grounded LLM endpoint before evaluating answer quality.
 
 ## Architecture
 
