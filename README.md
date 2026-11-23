@@ -52,7 +52,7 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload
 ```
 
-Set `DATABASE_URL` to a PostgreSQL connection string. SQLite is supported for tests and lightweight local runs.
+Set `DATABASE_URL` to a PostgreSQL connection string. Docker Compose provisions PostgreSQL with pgvector. SQLite remains supported for lightweight local tests.
 
 ## API
 
@@ -97,9 +97,9 @@ See `.env.example`. Set `EMBEDDING_PROVIDER=openai` and `OPENAI_API_KEY` to use 
 
 ## Evaluation and limitations
 
-The repository includes deterministic unit tests for chunking, similarity and ranking. Add a curated question/answer dataset and measure Recall@K, MRR, faithfulness, answer relevance, latency and token cost before deploying.
+The repository includes deterministic tests and a JSONL evaluation runner reporting hit-rate@k, MRR and p50/p95 latency. The sample dataset is illustrative; replace it with reviewed queries and expected sources. Retrieval metrics do not establish faithfulness or answer correctness.
 
-Security and production work still required: real user identity and RBAC, upload size and malware scanning, rate limiting, secrets management, audit logging, background ingestion workers, deletion guarantees, prompt-injection defenses, pgvector/ANN indexing, observability and load testing. Retrieved documents are untrusted input and must never be treated as system instructions.
+Remaining production work: real user identity and RBAC, rate limiting, secrets management, audit logging, asynchronous ingestion, malware scanning, deletion guarantees, observability, load testing and human-reviewed faithfulness evaluation. Retrieved documents are untrusted input and must never be treated as system instructions. The organization-token bootstrap endpoint is a demo onboarding flow, not a complete identity system.
 
 ## License
 
