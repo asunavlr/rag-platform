@@ -7,8 +7,12 @@ from app.config import settings
 from app.database import Base, engine, get_db
 from app.models import Chunk, Document, Organization
 from app.schemas import (
-    Citation, DocumentOut, OrganizationCreate, OrganizationCreated,
-    QueryRequest, QueryResponse,
+    Citation,
+    DocumentOut,
+    OrganizationCreate,
+    OrganizationCreated,
+    QueryRequest,
+    QueryResponse,
 )
 from app.security import create_access_token, get_current_organization, hash_token
 from app.services.chunking import split_text

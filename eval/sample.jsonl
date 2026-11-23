@@ -1,0 +1,2 @@
+{"question":"What is the refund period?","expected_filenames":["refund-policy.md"],"top_k":5}
+{"question":"How can an employee request annual leave?","expected_filenames":["employee-handbook.md"],"top_k":5}
