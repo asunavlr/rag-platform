@@ -104,3 +104,8 @@ Security and production work still required: real user identity and RBAC, upload
 ## License
 
 MIT
+
+
+## Retrieval evaluation
+
+A reproducible evaluation harness is available in [docs/evaluation.md](docs/evaluation.md). It runs a JSONL golden dataset against the live API and reports hit-rate@k, MRR, and p50/p95 latency. Configure RAG_API_URL, RAG_API_TOKEN and RAG_ORGANIZATION_ID, then run python scripts/evaluate.py. Replace the illustrative sample questions with domain-reviewed cases before using the metrics for decisions.
