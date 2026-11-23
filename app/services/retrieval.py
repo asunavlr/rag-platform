@@ -18,8 +18,8 @@ def cosine_similarity(left: list[float], right: list[float]) -> float:
 
 
 def lexical_score(query: str, content: str) -> float:
-    terms = set(re.findall(r"[\\w'-]+", query.lower()))
-    words = re.findall(r"[\\w'-]+", content.lower())
+    terms = set(re.findall(r"[\w'-]+", query.lower()))
+    words = re.findall(r"[\w'-]+", content.lower())
     if not terms or not words:
         return 0.0
     return sum(1 for term in terms if term in words) / len(terms)
