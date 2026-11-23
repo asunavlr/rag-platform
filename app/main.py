@@ -92,7 +92,7 @@ async def upload_document(
     if len(content) > settings.max_upload_bytes:
         raise HTTPException(status_code=413, detail="File exceeds upload limit")
     filename = PurePath((file.filename or "document").replace("\\", "/")).name
-    if not filename or filename in {".", ".."}:
+    if not filename or filename in {".", ".."} or len(filename) > 255:
         raise HTTPException(status_code=422, detail="A valid filename is required")
     text = extract_text(filename, content)
     chunks_text = split_text(text, settings.chunk_size, settings.chunk_overlap)
