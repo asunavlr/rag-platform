@@ -11,7 +11,7 @@ def local_embedding(text: str, dimensions: int | None = None) -> list[float]:
     """Deterministic feature-hashing baseline for local demos, not a semantic model."""
     size = dimensions or settings.embedding_dimensions
     vector = [0.0] * size
-    tokens = re.findall(r"[\\w'-]+", text.lower())
+    tokens = re.findall(r"[\w'-]+", text.lower())
     for token in tokens:
         digest = hashlib.blake2b(token.encode(), digest_size=8).digest()
         index = int.from_bytes(digest[:4], "big") % size
