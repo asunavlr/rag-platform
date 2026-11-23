@@ -1,9 +1,11 @@
 import uuid
 from datetime import UTC, datetime
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.config import settings
 from app.database import Base
 
 
@@ -36,9 +38,12 @@ class Document(Base):
 class Chunk(Base):
     __tablename__ = "chunks"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    organization_id: Mapped[str] = mapped_column(String(36), index=True)
+    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
     document_id: Mapped[str] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
     ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[list] = mapped_column(JSON, nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(
+        JSON().with_variant(Vector(settings.embedding_dimensions), "postgresql"),
+        nullable=False,
+    )
     document: Mapped[Document] = relationship(back_populates="chunks")
