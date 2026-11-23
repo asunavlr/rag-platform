@@ -10,7 +10,6 @@ import json
 import os
 import statistics
 import time
-import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
