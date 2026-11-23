@@ -8,6 +8,7 @@ from app.config import settings
 
 
 def local_embedding(text: str, dimensions: int | None = None) -> list[float]:
+    """Deterministic feature-hashing baseline for local demos, not a semantic model."""
     size = dimensions or settings.embedding_dimensions
     vector = [0.0] * size
     tokens = re.findall(r"[\w'-]+", text.lower())
@@ -29,7 +30,11 @@ async def embed_texts(texts: list[str]) -> list[list[float]]:
         response = await client.post(
             f"{settings.openai_base_url.rstrip('/')}/embeddings",
             headers={"Authorization": f"Bearer {settings.openai_api_key}"},
-            json={"model": settings.embedding_model, "input": texts},
+            json={
+                "model": settings.embedding_model,
+                "input": texts,
+                "dimensions": settings.embedding_dimensions,
+            },
         )
         response.raise_for_status()
         data = response.json()["data"]

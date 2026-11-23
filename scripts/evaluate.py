@@ -16,11 +16,14 @@ from typing import Any
 
 
 def percentile(values: list[float], quantile: float) -> float:
+    """Nearest-rank percentile; quantile must be in [0, 1]."""
+    if not 0 <= quantile <= 1:
+        raise ValueError("quantile must be between 0 and 1")
     if not values:
         return 0.0
     ordered = sorted(values)
-    index = min(len(ordered) - 1, max(0, round((len(ordered) - 1) * quantile)))
-    return ordered[index]
+    rank = max(1, int(len(ordered) * quantile + 0.999999))
+    return ordered[min(len(ordered) - 1, rank - 1)]
 
 
 def score_result(expected: set[str], citations: list[dict[str, Any]]) -> tuple[float, float]:
@@ -54,6 +57,8 @@ def main() -> int:
     parser.add_argument("--dataset", default="eval/sample.jsonl")
     parser.add_argument("--top-k", type=int, default=5)
     args = parser.parse_args()
+    if args.top_k < 1 or args.top_k > 20:
+        parser.error("--top-k must be between 1 and 20")
 
     base_url = os.environ.get("RAG_API_URL", "http://localhost:8000")
     token = os.environ.get("RAG_API_TOKEN")
@@ -62,13 +67,20 @@ def main() -> int:
         parser.error("Set RAG_API_TOKEN and RAG_ORGANIZATION_ID.")
 
     rows = [json.loads(line) for line in Path(args.dataset).read_text(encoding="utf-8").splitlines() if line.strip()]
+    if not rows:
+        parser.error("Dataset is empty.")
     hits: list[float] = []
     reciprocal_ranks: list[float] = []
     latencies: list[float] = []
 
-    for row in rows:
+    for index, row in enumerate(rows, start=1):
+        if not isinstance(row.get("question"), str) or not row["question"].strip():
+            parser.error(f"Dataset row {index} has no valid question.")
+        top_k = int(row.get("top_k", args.top_k))
+        if not 1 <= top_k <= 20:
+            parser.error(f"Dataset row {index} top_k must be between 1 and 20.")
         started = time.perf_counter()
-        result = query_api(base_url, token, organization_id, row["question"], row.get("top_k", args.top_k))
+        result = query_api(base_url, token, organization_id, row["question"], top_k)
         latencies.append((time.perf_counter() - started) * 1000)
         hit, reciprocal_rank = score_result(set(row.get("expected_filenames", [])), result.get("citations", []))
         hits.append(hit)
@@ -76,11 +88,11 @@ def main() -> int:
 
     report = {
         "queries": len(rows),
-        "hit_rate_at_k": round(statistics.mean(hits), 4) if hits else 0.0,
-        "mrr": round(statistics.mean(reciprocal_ranks), 4) if reciprocal_ranks else 0.0,
+        "hit_rate_at_k": round(statistics.mean(hits), 4),
+        "mrr": round(statistics.mean(reciprocal_ranks), 4),
         "latency_ms_p50": round(percentile(latencies, 0.50), 2),
         "latency_ms_p95": round(percentile(latencies, 0.95), 2),
-        "top_k": args.top_k,
+        "top_k_default": args.top_k,
     }
     print(json.dumps(report, indent=2))
     return 0

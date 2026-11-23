@@ -23,3 +23,10 @@ Each JSONL row contains a question, expected source filenames and optional top-k
 - **Latency:** end-to-end API request time, including embedding, retrieval and generation.
 
 The sample dataset is illustrative. Replace it with questions and expected sources reviewed by a domain expert. Track dataset version, model/provider, chunking configuration and commit SHA alongside each benchmark. Do not interpret these retrieval metrics as proof of answer faithfulness; add human-reviewed faithfulness and answer-relevance labels before production decisions.
+
+
+## Embedding configuration
+
+The local feature-hashing provider is a deterministic smoke-test baseline, not a semantic embedding model. It verifies ingestion, ranking code paths and API wiring, but benchmark scores from it should not be presented as semantic retrieval quality. For meaningful retrieval evaluation, configure a production embedding provider, re-index the same documents, and record provider/model, vector dimensions, chunk settings and dataset revision with each report.
+
+PostgreSQL deployments use pgvector cosine distance to select a bounded candidate set before reciprocal-rank fusion. SQLite test runs use the in-process fallback and are not representative of production retrieval latency.
