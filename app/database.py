@@ -1,6 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
+from alembic import command
+from alembic.config import Config
+
 from app.config import settings
 
 connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
@@ -13,12 +16,9 @@ class Base(DeclarativeBase):
 
 
 def initialize_database() -> None:
-    if engine.dialect.name == "postgresql":
-        with engine.begin() as connection:
-            connection.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS vector")
-    from app import models  # noqa: F401
-
-    Base.metadata.create_all(bind=engine)
+    config = Config("alembic.ini")
+    config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
+    command.upgrade(config, "head")
 
 
 def get_db():
