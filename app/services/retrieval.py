@@ -1,6 +1,10 @@
 import math
 import re
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.database import engine
 from app.models import Chunk, Document
 from app.services.embeddings import local_embedding
 
@@ -14,11 +18,21 @@ def cosine_similarity(left: list[float], right: list[float]) -> float:
 
 
 def lexical_score(query: str, content: str) -> float:
-    terms = set(re.findall(r"[\w'-]+", query.lower()))
-    words = re.findall(r"[\w'-]+", content.lower())
+    terms = set(re.findall(r"[\\w'-]+", query.lower()))
+    words = re.findall(r"[\\w'-]+", content.lower())
     if not terms or not words:
         return 0.0
     return sum(1 for term in terms if term in words) / len(terms)
+
+
+def retrieve_candidates(
+    db: Session, organization_id: str, query_vector: list[float], candidate_limit: int
+) -> list[Chunk]:
+    statement = select(Chunk).where(Chunk.organization_id == organization_id)
+    if engine.dialect.name == "postgresql":
+        statement = statement.order_by(Chunk.embedding.cosine_distance(query_vector))
+        statement = statement.limit(candidate_limit)
+    return list(db.scalars(statement).all())
 
 
 def hybrid_rank(
