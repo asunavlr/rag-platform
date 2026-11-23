@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.database import Base, engine, get_db, initialize_database
+from app.database import get_db, initialize_database
 from app.models import Chunk, Document, Organization
 from app.schemas import (
     Citation,
